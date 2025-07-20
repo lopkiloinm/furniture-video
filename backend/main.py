@@ -279,6 +279,12 @@ async def handle_conversation(request: ConversationRequest):
             elif request.current_step == 4:
                 conversation_context += "Ask about special requirements."
 
+        # Debug logging for request
+        print(f"=== REQUEST DEBUG ===")
+        print(f"System Prompt: '{system_prompt}'")
+        print(f"Conversation Context: '{conversation_context}'")
+        print(f"Max Tokens: 1000")
+        
         # Make API call to Kimi K2
         headers = {
             "Content-Type": "application/json",
@@ -292,7 +298,7 @@ async def handle_conversation(request: ConversationRequest):
                 {"role": "user", "content": conversation_context}
             ],
             "temperature": 0.7,
-            "max_tokens": 150
+            "max_tokens": 1000
         }
 
         response = requests.post(
@@ -304,11 +310,21 @@ async def handle_conversation(request: ConversationRequest):
 
         if response.status_code == 200:
             ai_response = response.json()
+            print(f"FULL API RESPONSE: {ai_response}")
+            
             ai_message = ai_response.get("choices", [{}])[0].get("message", {}).get("content", "")
             
             # Debug logging
             print(f"Raw AI Response: '{ai_message}'")
             print(f"AI Response Length: {len(ai_message)} characters")
+            
+            # Check finish reason
+            finish_reason = ai_response.get("choices", [{}])[0].get("finish_reason", "unknown")
+            print(f"Finish Reason: {finish_reason}")
+            
+            # Check usage info
+            usage = ai_response.get("usage", {})
+            print(f"Token Usage: {usage}")
             
             # Check if AI wants to advance to next step (handle both NEXT_STEP and NEXT)
             should_advance = "NEXT_STEP" in ai_message or ai_message.strip().endswith("NEXT")
