@@ -1,0 +1,737 @@
+/* Advanced AI Furniture Curator Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.appContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Header Section */
+.header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.appTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.appSubtitle {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin-bottom: 2rem;
+}
+
+/* Step Indicator */
+.stepIndicator {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.step.completed {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #10b981;
+}
+
+.step.active {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border-color: #3b82f6;
+  animation: pulse 2s infinite;
+}
+
+.step.pending {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+  border-color: #e5e7eb;
+}
+
+.stepNumber {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.stepLabel {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Main Content */
+.mainContent {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.chatSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+}
+
+.messagesContainer {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Message Styles */
+.message {
+  display: flex;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.aiMessage {
+  justify-content: flex-start;
+}
+
+.userMessage {
+  justify-content: flex-end;
+}
+
+.messageContent {
+  max-width: 80%;
+  display: flex;
+  flex-direction: column;
+}
+
+.aiMessage .messageContent {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  color: #374151;
+  border-radius: 18px 18px 18px 4px;
+  padding: 1rem 1.25rem;
+  border: 1px solid #e5e7eb;
+}
+
+.userMessage .messageContent {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 18px 18px 4px 18px;
+  padding: 1rem 1.25rem;
+}
+
+.messageText {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.messageTime {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  align-self: flex-end;
+}
+
+/* Typing Indicator */
+.typingIndicator {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.typingIndicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9ca3af;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typingIndicator span:nth-child(1) { animation-delay: 0s; }
+.typingIndicator span:nth-child(2) { animation-delay: 0.2s; }
+.typingIndicator span:nth-child(3) { animation-delay: 0.4s; }
+
+
+
+
+
+
+
+
+
+.streamingMessage {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Markdown Styling */
+.markdown {
+  line-height: 1.5;
+}
+
+.markdown p {
+  margin: 0 0 0.5rem 0;
+}
+
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown strong {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.markdown em {
+  font-style: italic;
+  color: #374151;
+}
+
+.markdown ul, .markdown ol {
+  margin: 0.5rem 0;
+  padding-left: 1.2rem;
+}
+
+.markdown li {
+  margin: 0.2rem 0;
+}
+
+.markdown ul li {
+  list-style-type: disc;
+}
+
+.markdown ol li {
+  list-style-type: decimal;
+}
+
+.markdown h1, .markdown h2, .markdown h3 {
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0.5rem 0 0.3rem 0;
+}
+
+.markdown h1 { font-size: 1.1rem; }
+.markdown h2 { font-size: 1rem; }
+.markdown h3 { font-size: 0.95rem; }
+
+.markdown code {
+  background: #f3f4f6;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+@keyframes typing {
+  0%, 60%, 100% { 
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  30% { 
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Input Area */
+.inputArea {
+  display: flex;
+  padding: 1.5rem;
+  gap: 1rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.chatInput {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 25px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.chatInput:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.chatInput:disabled {
+  background-color: #f5f5f5;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+  opacity: 0.7;
+  color: #999;
+}
+
+.sendButton {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.sendButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Furniture Selection Interface */
+.furnitureSelectionContainer {
+  width: 100%;
+  margin: 1rem 0;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+}
+
+.furnitureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.furnitureItem {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.furnitureItem.selected {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.furnitureItem.unselected {
+  opacity: 0.6;
+  border-color: #e2e8f0;
+}
+
+.furnitureItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.furnitureImageContainer {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 100%; /* Creates 1:1 aspect ratio (square) */
+  overflow: hidden;
+}
+
+.furnitureItemImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.checkboxOverlay {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ffffff;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.checkbox.checked {
+  background: #667eea;
+  border-color: #667eea;
+}
+
+.checkmark {
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.aiRecommendedBadge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.furnitureItemInfo {
+  padding: 1rem;
+  text-align: center;
+}
+
+.furnitureItemName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.furnitureItemPrice {
+  font-size: 0.8rem;
+  color: #667eea;
+  font-weight: 500;
+}
+
+.selectionActions {
+  display: flex;
+  justify-content: center;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.confirmButton {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.confirmButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.confirmButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Video Placeholder */
+.videoContainer {
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.videoPlaceholder {
+  background: linear-gradient(135deg, #1f2937, #374151);
+  border-radius: 16px;
+  padding: 3rem;
+  text-align: center;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.videoPlaceholder:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.playIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.9;
+}
+
+.videoText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.videoSubtext {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Results Section */
+.resultsSection {
+  flex: 1.2;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideInRight 0.5s ease-out;
+}
+
+.resultsContainer {
+  padding: 2rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.resultsTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.furnitureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.furnitureCard {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.furnitureCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.furnitureImage {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.furnitureInfo {
+  padding: 1.25rem;
+}
+
+.furnitureName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.furniturePrice {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 0.75rem;
+}
+
+.furnitureDescription {
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.furnitureProperties {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.propertyTag {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .mainContent {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 1.5rem;
+  }
+  
+  .appTitle {
+    font-size: 2rem;
+  }
+  
+  .stepIndicator {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  .step {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .stepLabel {
+    display: none;
+  }
+  
+  .mainContent {
+    padding: 1rem;
+  }
+  
+  .chatContainer {
+    height: 500px;
+  }
+  
+  .furnitureGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .messageContent {
+    max-width: 90%;
+  }
+
+  .furnitureGrid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .furnitureImageContainer {
+    height: 80px;
+  }
+
+  .furnitureSelectionContainer {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .appTitle {
+    font-size: 1.75rem;
+  }
+  
+  .inputArea {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .sendButton {
+    align-self: stretch;
+  }
+
+  .videoPlaceholder {
+    padding: 2rem;
+  }
+
+  .playIcon {
+    font-size: 2.5rem;
+  }
+
+  .videoText {
+    font-size: 1.1rem;
+  }
+} 
