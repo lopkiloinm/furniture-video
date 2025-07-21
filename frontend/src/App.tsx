@@ -59,6 +59,7 @@ function App() {
   const [selectedFurnitureIds, setSelectedFurnitureIds] = useState<number[]>([])
   const [aiRecommendedIds, setAiRecommendedIds] = useState<number[]>([])
   const [currentStep, setCurrentStep] = useState(1)
+  const [isProcessing, setIsProcessing] = useState(false) // Mutex for requests
   const totalSteps = 8
   const welcomeMessageSent = useRef(false)
 
@@ -72,6 +73,7 @@ function App() {
   }, [])
 
   const sendInitialWelcomeMessage = async () => {
+    setIsProcessing(true)
     setIsTyping(true)
 
     try {
@@ -93,6 +95,7 @@ function App() {
         if (result.status === 'success') {
           setIsTyping(false)
           addStreamingAIMessage(result.ai_response)
+          // Welcome messages should not advance steps - mutex will be released in streaming completion
         } else {
           getAIErrorResponse("welcome failed")
         }
@@ -132,40 +135,55 @@ function App() {
   }
 
   const addStreamingAIMessage = (content: string) => {
+    // Ensure we have the full content before streaming
+    const fullContent = content || ''
+    
     setIsStreaming(true)
     setIsTyping(true)
     setStreamingMessage('')
     
+    // Use refs to prevent state-related interruptions
     let displayedContent = ''
     let index = 0
+    let completed = false
     
     const streamInterval = setInterval(() => {
-      if (index < content.length) {
-        displayedContent += content[index]
+      if (completed) return
+      
+      if (index < fullContent.length) {
+        const char = fullContent[index]
+        displayedContent += char
         setStreamingMessage(displayedContent)
         index++
-      } else {
-        clearInterval(streamInterval)
-        setIsStreaming(false)
-        setIsTyping(false)
-        
-        // Add final message to chat history
-        const finalMessage: Message = {
-          id: Date.now().toString(),
-          type: 'ai',
-          content,
-          timestamp: new Date()
+              } else {
+          // Double-check we've streamed everything before finishing
+          if (index >= fullContent.length && displayedContent.length >= fullContent.length) {
+            completed = true
+            clearInterval(streamInterval)
+            setIsStreaming(false)
+            setIsTyping(false)
+            
+            // Always use the full original content
+            const finalMessage: Message = {
+              id: Date.now().toString(),
+              type: 'ai',
+              content: fullContent,
+              timestamp: new Date()
+            }
+            setMessages(prev => [...prev, finalMessage])
+            setStreamingMessage('')
+            
+            // Release mutex - streaming complete
+            setIsProcessing(false)
+          }
         }
-        setMessages(prev => [...prev, finalMessage])
-        setStreamingMessage('')
-      }
     }, 20)
   }
 
 
 
   const handleUserInput = async () => {
-    if (!userInput.trim()) return
+    if (!userInput.trim() || isProcessing) return
 
     const input = userInput.trim()
     addMessage('user', input)
@@ -177,10 +195,14 @@ function App() {
 
   const getAIErrorResponse = (errorType: string) => {
     setIsTyping(false)
+    setIsProcessing(false) // Release mutex on error
     addStreamingAIMessage("Sorry, I'm having technical difficulties. Please try again!")
   }
 
   const getAITransitionMessage = (transitionType: string) => {
+    if (isProcessing) return // Respect mutex
+    
+    setIsProcessing(true)
     const messages: { [key: string]: string } = {
       'analysis_start': "Analyzing your requirements and curating furniture options...",
       'furniture_presentation': "Here are my curated recommendations! You can adjust your selection.",
@@ -189,10 +211,20 @@ function App() {
     }
     const message = messages[transitionType] || "Moving to the next step..."
     addStreamingAIMessage(message)
+    // Mutex will be released in streaming completion
   }
 
   const getAIResponse = async (userMessage: string) => {
+    // Mutex - prevent concurrent requests
+    if (isProcessing) {
+      return
+    }
+    
+    setIsProcessing(true)
     setIsTyping(true)
+    
+    // Capture current step at time of sending to avoid race conditions
+    const stepAtTimeOfSending = currentStep
     
     try {
       const response = await fetch('http://localhost:8000/api/conversation', {
@@ -203,7 +235,7 @@ function App() {
         body: JSON.stringify({
           user_message: userMessage,
           conversation_history: messages,
-          current_step: currentStep,
+          current_step: stepAtTimeOfSending,
           conversation_data: conversationData
         })
       })
@@ -212,21 +244,9 @@ function App() {
         const result = await response.json()
         
         if (result.status === 'success') {
-          // Debug logging
-          console.log('AI Response:', result.ai_response)
-          console.log('Advance Step:', result.advance_step)
-          console.log('Current Step:', currentStep)
-          
           // Add AI response with streaming
           addStreamingAIMessage(result.ai_response)
-          
-          // Handle step advancement if AI indicates ready
-          if (result.advance_step) {
-            console.log('Advancing step from', currentStep, 'to', currentStep + 1)
-            setTimeout(() => {
-              handleStepAdvancement(userMessage)
-            }, result.ai_response.length * 20 + 500) // Wait for streaming to complete
-          }
+          // No automatic step advancement - user controls when to move on
         } else {
           getAIErrorResponse("API processing error")
         }
@@ -239,9 +259,44 @@ function App() {
     }
   }
 
-  const handleStepAdvancement = (userMessage: string) => {
-    // Update conversation data based on current step
+  const handleManualStepAdvancement = () => {
+    if (isProcessing) return
+    
+    // Advance to next step manually
+    const nextStep = currentStep + 1
+    
     switch (currentStep) {
+      case 1: // Welcome -> Space Details
+        setCurrentState(AIState.GATHERING_SPACE)
+        setCurrentStep(2)
+        break
+
+      case 2: // Space -> Style  
+        setCurrentState(AIState.GATHERING_STYLE)
+        setCurrentStep(3)
+        break
+
+      case 3: // Style -> Budget
+        setCurrentState(AIState.GATHERING_BUDGET) 
+        setCurrentStep(4)
+        break
+
+      case 4: // Budget -> Analysis
+        setCurrentState(AIState.ANALYZING)
+        setCurrentStep(5)
+        
+        // Start analysis process
+        setTimeout(async () => {
+          await getAITransitionMessage("analysis_start")
+          setTimeout(() => processAISelection(), 2000)
+        }, 300)
+        break
+    }
+  }
+
+  const handleStepAdvancement = (userMessage: string, fromStep: number) => {
+    // Update conversation data based on the step we're advancing FROM
+    switch (fromStep) {
       case 1: // Welcome -> Space Details
         setConversationData(prev => ({ ...prev, spaceType: userMessage }))
         setCurrentState(AIState.GATHERING_SPACE)
@@ -487,23 +542,35 @@ function App() {
        currentState !== AIState.PRESENTING && 
        currentState !== AIState.GENERATING_VIDEO && 
        currentState !== AIState.COMPLETE && (
-        <div className={styles.inputArea}>
+                <div className={styles.inputArea}>
           <input
             type="text"
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleUserInput()}
-            placeholder={isTyping || isStreaming ? "AI is typing..." : getPlaceholderText()}
+            placeholder={isProcessing ? "Processing..." : getPlaceholderText()}
             className={styles.chatInput}
-            disabled={isTyping || isStreaming}
+            disabled={isProcessing}
           />
           <button
             onClick={handleUserInput}
-            disabled={!userInput.trim() || isTyping || isStreaming}
+            disabled={!userInput.trim() || isProcessing}
             className={styles.sendButton}
           >
             Send
           </button>
+          {currentStep <= 4 && (
+            <button
+              onClick={() => handleManualStepAdvancement()}
+              disabled={isProcessing}
+              className={styles.nextButton}
+            >
+              {currentStep === 1 ? 'Talk Space Details →' : 
+               currentStep === 2 ? 'Discuss Style →' : 
+               currentStep === 3 ? 'Set Budget →' : 
+               'Start Analysis →'}
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -256,8 +256,16 @@ async def handle_conversation(request: ConversationRequest):
         step_names = ["Welcome", "Space Details", "Style Preferences", "Budget & Requirements", "Analysis", "Furniture Selection", "Video Generation", "Complete"]
         current_step_name = step_names[min(request.current_step - 1, len(step_names) - 1)]
         
-        # Minimal system prompt
-        system_prompt = "You are a helpful interior designer. Be conversational and friendly. End responses with 'NEXT_STEP' to advance (except steps 5-8)."
+        system_prompt = """You are a helpful interior designer. Be conversational and friendly. 
+
+CRITICAL RULES:
+1. Always complete your full response before stopping
+2. Never cut off mid-sentence, mid-word, or mid-list
+3. Provide complete lists of options (e.g., "modern, cozy, rustic, minimalist, traditional")
+4. Use proper markdown formatting with complete **bold** tags
+5. Give detailed, engaging responses that feel natural and conversational
+
+Respond naturally to user input without rushing them to the next step."""
 
         # Minimal context - only what's needed
         conversation_context = f"Step {request.current_step} of 8. "
@@ -269,21 +277,30 @@ async def handle_conversation(request: ConversationRequest):
             # Regular conversation
             conversation_context += f"User said: '{request.user_message}'. "
             
-            # Step guidance
+            # Natural conversation guidance based on current step
             if request.current_step == 1:
-                conversation_context += "Ask about their space/room."
+                conversation_context += "You're learning about their project. Ask follow-up questions about their space and goals naturally."
             elif request.current_step == 2:
-                conversation_context += "Ask about style preferences."  
+                conversation_context += "You're gathering space details. Ask about size, layout, current furniture, or any specific needs they mentioned."  
             elif request.current_step == 3:
-                conversation_context += "Ask about budget."
+                conversation_context += "You're exploring their style preferences. Discuss different aesthetics and what appeals to them."
             elif request.current_step == 4:
-                conversation_context += "Ask about special requirements."
+                conversation_context += "You're understanding their budget and requirements. Explore their financial considerations and special needs."
+                
+            conversation_context += " Respond naturally and conversationally. Let the user guide the pace."
 
         # Debug logging for request
         print(f"=== REQUEST DEBUG ===")
-        print(f"System Prompt: '{system_prompt}'")
-        print(f"Conversation Context: '{conversation_context}'")
-        print(f"Max Tokens: 1000")
+        print(f"Current Step: {request.current_step} - {current_step_name}")
+        print(f"User Message: '{request.user_message}'")
+        print(f"System Prompt Length: {len(system_prompt)} chars")
+        print(f"Conversation Context Length: {len(conversation_context)} chars")
+        print(f"Total Prompt Length: {len(system_prompt) + len(conversation_context)} chars")
+        print(f"Max Tokens: 2000")
+        
+        total_prompt_length = len(system_prompt) + len(conversation_context)
+        if total_prompt_length > 1000:
+            print(f"⚠️  Long prompt ({total_prompt_length} chars) - might affect response")
         
         # Make API call to Kimi K2
         headers = {
@@ -298,15 +315,17 @@ async def handle_conversation(request: ConversationRequest):
                 {"role": "user", "content": conversation_context}
             ],
             "temperature": 0.7,
-            "max_tokens": 1000
+            "max_tokens": 2000
         }
 
+        print(f"Making conversation API request...")
         response = requests.post(
             "https://api.gmi-serving.com/v1/chat/completions",
             headers=headers,
             json=payload,
             timeout=30
         )
+        print(f"API response status: {response.status_code}")
 
         if response.status_code == 200:
             ai_response = response.json()
@@ -315,29 +334,36 @@ async def handle_conversation(request: ConversationRequest):
             ai_message = ai_response.get("choices", [{}])[0].get("message", {}).get("content", "")
             
             # Debug logging
+            print(f"=== AI RESPONSE DEBUG ===")
             print(f"Raw AI Response: '{ai_message}'")
             print(f"AI Response Length: {len(ai_message)} characters")
+            print(f"Response ends with: '{ai_message[-20:]}'")
             
             # Check finish reason
             finish_reason = ai_response.get("choices", [{}])[0].get("finish_reason", "unknown")
             print(f"Finish Reason: {finish_reason}")
             
+            if finish_reason == "length":
+                print("🚨 WARNING: Response was truncated due to token limit!")
+            
             # Check usage info
             usage = ai_response.get("usage", {})
             print(f"Token Usage: {usage}")
             
-            # Check if AI wants to advance to next step (handle both NEXT_STEP and NEXT)
-            should_advance = "NEXT_STEP" in ai_message or ai_message.strip().endswith("NEXT")
-            clean_message = ai_message.replace("NEXT_STEP", "").replace(" NEXT", "").strip()
+            if usage.get("completion_tokens", 0) >= 1900:
+                print("⚠️  WARNING: Near token limit, might be truncated!")
             
-            print(f"Should Advance: {should_advance}")
-            print(f"Clean Message: '{clean_message}'")
-            print(f"Clean Message Length: {len(clean_message)} characters")
+            print(f"=== MESSAGE PROCESSING ===")
+            print(f"Final AI Response: '{ai_message}'")
+            print(f"Response Length: {len(ai_message)} characters")
+            
+            if len(ai_message) < 20:
+                print("🚨 ALERT: AI response suspiciously short!")
             
             return {
                 "status": "success",
-                "ai_response": clean_message,
-                "advance_step": should_advance
+                "ai_response": ai_message,
+                "advance_step": False  # User controls advancement now
             }
         else:
             return {"status": "error", "message": f"AI API error: {response.status_code}"}
